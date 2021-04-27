@@ -499,3 +499,33 @@ fatal_signal_block(sigset_t *prev_mask)
     xpthread_sigmask(SIG_BLOCK, &block_mask, prev_mask);
 }
 #endif
+
+static volatile sig_atomic_t exiting = 0;
+
+static void
+sig_term_graceful_handler(int signum)
+{
+    if (signum != SIGTERM) {
+        return;
+    }
+
+    ovs_mutex_lock(&mutex);
+    VLOG_WARN("starting graceful shutdown with SIGTERM signal");
+    exiting = 1;
+    // indicate poll_block() to stop polling and return to the main loop
+    ignore(write(signal_fds[1], "", 1));
+    ovs_mutex_unlock(&mutex);
+}
+
+/* Override SIGTERM signal handler so we can implement
+ * the graceful shutdown logic */
+void
+fatal_signal_enable_graceful_shutdown()
+{
+    signal(SIGTERM, sig_term_graceful_handler);
+}
+
+bool
+fatal_signal_should_graceful_exit() {
+    return exiting != 0;
+}

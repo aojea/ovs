@@ -33,6 +33,14 @@ void fatal_signal_wait(void);
 void fatal_ignore_sigpipe(void);
 void fatal_signal_atexit_handler(void);
 
+/* Interface to implement graceful shutdown
+ * These functions captures the SIGTERM signal to avoid exiting immediately
+ * and allow to check if the signal was received, so we know we should start
+ * to exit gracefully.
+*/
+void fatal_signal_enable_graceful_shutdown(void);
+bool fatal_signal_should_graceful_exit(void);
+
 /* Convenience functions for unlinking files upon termination.
  *
  * These functions also unlink the files upon normal process termination via
