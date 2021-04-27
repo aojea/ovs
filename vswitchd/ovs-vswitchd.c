@@ -114,6 +114,7 @@ main(int argc, char *argv[])
 
     exiting = false;
     cleanup = false;
+    fatal_signal_enable_graceful_shutdown();
     while (!exiting) {
         memory_run();
         if (memory_should_report()) {
@@ -137,6 +138,9 @@ main(int argc, char *argv[])
         }
         poll_block();
         if (should_service_stop()) {
+            exiting = true;
+        }
+        if (fatal_signal_should_graceful_exit()){
             exiting = true;
         }
     }
