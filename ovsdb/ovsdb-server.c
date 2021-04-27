@@ -187,6 +187,7 @@ main_loop(struct server_config *config,
     *exiting = false;
     ssl_error = NULL;
     remotes_error = NULL;
+    fatal_signal_enable_graceful_shutdown();
     while (!*exiting) {
         memory_run();
         if (memory_should_report()) {
@@ -287,6 +288,9 @@ main_loop(struct server_config *config,
         poll_timer_wait_until(status_timer);
         poll_block();
         if (should_service_stop()) {
+            *exiting = true;
+        }
+        if (fatal_signal_should_graceful_exit()){
             *exiting = true;
         }
     }
